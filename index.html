@@ -35,7 +35,8 @@
     @media (max-width: 640px) { .grid { grid-template-columns: repeat(2, 1fr) } header { flex-direction:column; align-items:flex-start } }
     .card { display:flex; flex-direction:column; gap:10px; background: var(--card); border:1px solid #22314b; border-radius:14px; padding:12px; transition:.15s ease }
     .card:hover { transform: translateY(-2px); border-color:#2c3d61 }
-    .thumb { height:110px; border-radius:10px; background: #0f1624; display:grid; place-items:center; font-weight:700; font-size: 22px; letter-spacing:.5px }
+    .thumb { height:110px; border-radius:10px; background: #0f1624; display:grid; place-items:center; font-weight:700; font-size: 22px; letter-spacing:.5px; overflow:hidden; position:relative }
+    .thumb img { display:block; width:100%; height:100%; object-fit:cover; object-position:center; border-radius:inherit }
     .title { font-weight:700; font-size:14px }
     .meta { display:flex; justify-content:space-between; align-items:center; color: var(--muted); font-size:12px }
     footer { margin: 28px 0 8px; color: var(--muted); font-size: 12px }
@@ -43,6 +44,20 @@
   </style>
 </head>
 <body>
+  <script>
+    (function(){
+      const REMOTE_ORIGIN = 'https://sintaxsaint.github.io/quizcool'
+      const isLocal = location.protocol === 'file:' || /^(localhost|127\.0\.0\.1)(:\\d+)?$/.test(location.host)
+      if (!isLocal) return
+      let path = location.pathname.replace(/\\/g,'/')
+      const anchor = '/quizcool/'
+      const i = path.toLowerCase().lastIndexOf(anchor)
+      let rel = i >= 0 ? path.slice(i + anchor.length) : path.split('/').pop()
+      let dest = REMOTE_ORIGIN
+      if (rel && rel !== '' && rel !== 'index.html') dest += '/' + rel
+      location.replace(dest)
+    })()
+  </script>
   <div class="container">
     <header>
       <div class="brand">
@@ -80,7 +95,7 @@
 
   <script>
     const items = [
-      { title: 'Slope', tag: 'racing', url: 'games/slope.html', color: '#1f8efa' },
+      { title: 'Slope', tag: 'racing', url: 'games/slope.html', color: '#1f8efa', thumb: 'thumbnails/slope.png' },
       { title: '2048', tag: 'puzzle', url: '#', color: '#f59f00' },
       { title: 'Tunnel Rush', tag: 'racing', url: '#', color: '#ff6b6b' },
       { title: 'Cookie Clicker', tag: 'puzzle', url: '#', color: '#45b36b' },
@@ -104,12 +119,18 @@
         const card = document.createElement('a')
         card.className = 'card'
         card.href = x.url
-        card.target = '_blank'
         const thumb = document.createElement('div')
         thumb.className = 'thumb'
         thumb.style.background = `linear-gradient(180deg, ${x.color}22, transparent)`
         thumb.style.border = `1px solid ${x.color}55`
-        thumb.textContent = x.title[0].toUpperCase()
+        if (x.thumb) {
+          const img = document.createElement('img')
+          img.src = x.thumb
+          img.alt = x.title
+          thumb.append(img)
+        } else {
+          thumb.textContent = x.title[0].toUpperCase()
+        }
         const title = document.createElement('div')
         title.className = 'title'
         title.textContent = x.title
