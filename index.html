@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quizcool</title>
+  <meta name="description" content="Quizcool — fast, simple homepage for unblocked games and apps.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#0b0f1a; --card:#121826; --muted:#8aa0b6; --text:#e6eef8; --accent:#4f9cf0; --accent2:#7c4dff; }
+    * { box-sizing: border-box }
+    html,body { height:100% }
+    body { margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: radial-gradient(1200px 600px at 80% -10%, #1b2a40 0%, #0b0f1a 45%), var(--bg); color: var(--text); }
+    a { color: inherit; text-decoration: none }
+    .container { max-width: 1100px; margin: 0 auto; padding: 24px }
+    header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding: 12px 0 }
+    .brand { display:flex; align-items:center; gap:12px }
+    .logo { width:40px; height:40px; border-radius:12px; background: linear-gradient(135deg, var(--accent), var(--accent2)); display:grid; place-items:center; font-weight:700 }
+    .brand h1 { margin:0; font-size: 20px; letter-spacing: .2px }
+    .brand small { display:block; color: var(--muted); font-size: 12px }
+    .actions { display:flex; gap:8px }
+    .btn { background: #1a2233; border: 1px solid #28324a; color: var(--text); padding: 10px 14px; border-radius:10px; transition:.15s ease; font-weight:600 }
+    .btn:hover { background:#212a3f; transform: translateY(-1px) }
+    .hero { margin-top: 18px; background: linear-gradient(180deg, rgba(79,156,240,.15), transparent 60%); border: 1px solid #22314b; border-radius:18px; padding: 24px }
+    .hero h2 { margin:0 0 10px; font-size: 26px }
+    .hero p { margin:0; color: var(--muted) }
+    .toolbar { display:flex; flex-wrap:wrap; gap:10px; margin-top: 16px }
+    .search { flex: 1 1 280px; display:flex; align-items:center; gap:8px; background:#0f1624; border:1px solid #22314b; border-radius:12px; padding:10px 12px }
+    .search input { flex:1; background:transparent; border:0; outline:none; color:var(--text); font-size:14px }
+    
+    .grid { margin-top: 18px; display:grid; grid-template-columns: repeat(4, 1fr); gap:12px }
+    @media (max-width: 900px) { .grid { grid-template-columns: repeat(3, 1fr) } }
+    @media (max-width: 640px) { .grid { grid-template-columns: repeat(2, 1fr) } header { flex-direction:column; align-items:flex-start } }
+    .card { display:flex; flex-direction:column; gap:10px; background: var(--card); border:1px solid #22314b; border-radius:14px; padding:12px; transition:.15s ease }
+    .card:hover { transform: translateY(-2px); border-color:#2c3d61 }
+    .thumb { height:110px; border-radius:10px; background: #0f1624; display:grid; place-items:center; font-weight:700; font-size: 22px; letter-spacing:.5px }
+    .title { font-weight:700; font-size:14px }
+    .meta { display:flex; justify-content:space-between; align-items:center; color: var(--muted); font-size:12px }
+    footer { margin: 28px 0 8px; color: var(--muted); font-size: 12px }
+    .pill { padding:4px 8px; border-radius:999px; border:1px solid #2c3d61; font-size:11px }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo">QC</div>
+        <div>
+          <h1>Quizcool</h1>
+          <small>Fast access to games and tools</small>
+        </div>
+      </div>
+      <div class="actions">
+        <a class="btn" href="#" id="requestBtn">Request</a>
+        <a class="btn" href="#" id="reportBtn">Report</a>
+      </div>
+    </header>
+
+    <section class="hero">
+      <h2>Play anywhere</h2>
+      <p>Search and launch unblocked games and apps with one click.</p>
+
+      <div class="toolbar">
+        <div class="search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 21l-4.35-4.35" stroke="#8aa0b6" stroke-width="2" stroke-linecap="round"/><circle cx="11" cy="11" r="7" stroke="#8aa0b6" stroke-width="2"/></svg>
+          <input id="searchInput" type="text" placeholder="Search games and apps">
+        </div>
+      </div>
+    </section>
+
+    <section class="grid" id="grid"></section>
+
+    <footer>
+      <span class="pill">Tip</span>
+      Press Ctrl+K to focus search
+    </footer>
+  </div>
+
+  <script>
+    const items = [
+      { title: 'Slope', tag: 'racing', url: 'games/slope.html', color: '#1f8efa' },
+      { title: '2048', tag: 'puzzle', url: '#', color: '#f59f00' },
+      { title: 'Tunnel Rush', tag: 'racing', url: '#', color: '#ff6b6b' },
+      { title: 'Cookie Clicker', tag: 'puzzle', url: '#', color: '#45b36b' },
+      { title: 'Retro Bowl', tag: 'action', url: '#', color: '#7c4dff' },
+      { title: 'Tetris', tag: 'puzzle', url: '#', color: '#22c55e' },
+      { title: 'Krunker', tag: 'action', url: '#', color: '#14b8a6' },
+      { title: 'Geometry Dash', tag: 'action', url: '#', color: '#ef4444' },
+      { title: 'Calculator', tag: 'tools', url: '#', color: '#6b8af5' },
+      { title: 'Notes', tag: 'tools', url: '#', color: '#9b59b6' },
+      { title: 'Moto X3M', tag: 'racing', url: '#', color: '#f97316' },
+      { title: 'Connect 4', tag: 'puzzle', url: '#', color: '#16a34a' }
+    ]
+
+    const grid = document.getElementById('grid')
+    const searchInput = document.getElementById('searchInput')
+    
+
+    function render(list) {
+      grid.innerHTML = ''
+      list.forEach(x => {
+        const card = document.createElement('a')
+        card.className = 'card'
+        card.href = x.url
+        card.target = '_blank'
+        const thumb = document.createElement('div')
+        thumb.className = 'thumb'
+        thumb.style.background = `linear-gradient(180deg, ${x.color}22, transparent)`
+        thumb.style.border = `1px solid ${x.color}55`
+        thumb.textContent = x.title[0].toUpperCase()
+        const title = document.createElement('div')
+        title.className = 'title'
+        title.textContent = x.title
+        const meta = document.createElement('div')
+        meta.className = 'meta'
+        const go = document.createElement('span')
+        go.textContent = 'Open'
+        meta.append(go)
+        card.append(thumb, title, meta)
+        grid.append(card)
+      })
+    }
+
+    function applyFilter() {
+      const q = searchInput.value.trim().toLowerCase()
+      const list = items.filter(i => i.title.toLowerCase().includes(q))
+      render(list)
+    }
+
+    
+
+    searchInput.addEventListener('input', applyFilter)
+    window.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); searchInput.focus() } })
+
+    render(items)
+  </script>
+</body>
+</html>
