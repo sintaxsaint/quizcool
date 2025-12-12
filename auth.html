@@ -32,6 +32,17 @@
   </style>
   <script>
     var ADMIN_EMAIL='ereadman2013@gmail.com'
+    var ADMIN_QUESTIONS=[
+      {q:'This project started on a?',a:['laptop']},
+      {q:'Site name?',a:['quizcool']},
+      {q:'Hosting platform used?',a:['github pages','github','pages']},
+      {q:'Primary dev email?',a:['ereadman2013@gmail.com']},
+      {q:'Main homepage file name?',a:['index.html']},
+      {q:'Auth page file name?',a:['auth.html']},
+      {q:'Games folder name?',a:['games']},
+      {q:'Brand acronym shown in the logo?',a:['qc']},
+      {q:'Primary languages used?',a:['html','javascript','js']}
+    ]
     function toHex(buffer){var h=[];var v=new Uint8Array(buffer);for(var i=0;i<v.length;i++){var s=v[i].toString(16);if(s.length===1)s='0'+s;h.push(s)}return h.join('')}
     function hashPassword(p){var enc=new TextEncoder().encode(p);return crypto.subtle.digest('SHA-256',enc).then(toHex)}
     function getUsers(){try{var x=JSON.parse(localStorage.getItem('qc_users')||'{}');return x&&typeof x==='object'?x:{} }catch(e){return {}}}
@@ -42,7 +53,7 @@
     function setPending(obj){localStorage.setItem('qc_pending',JSON.stringify(obj))}
     function clearPending(email){var p=getPending();delete p[email];setPending(p)}
     function signup(e){e.preventDefault();var name=document.getElementById('su_name').value.trim();var email=document.getElementById('su_email').value.trim().toLowerCase();var nick=document.getElementById('su_nick').value.trim();var pass=document.getElementById('su_pass').value;var err=document.getElementById('su_err');err.textContent='';if(!name||!email||!pass){err.textContent='Fill in required fields';return}if(pass.length<6){err.textContent='Password must be at least 6 characters';return}var banned=JSON.parse(localStorage.getItem('qc_banned')||'[]');var users=getUsers();if(users[email]){err.textContent='User already exists';return}hashPassword(pass).then(function(h){if(email===ADMIN_EMAIL){users[email]={name:name,email:email,nickname:nick,pwd:h,verified:true};setUsers(users);err.textContent='Admin account created. Please sign in.';showTab('signin');return}if(banned.indexOf(email)>-1){err.textContent='This email is banned';return}var p=getPending();p[email]={name:name,email:email,nickname:nick,pwd:h,ts:Date.now()};setPending(p);err.textContent='Submitted for approval. You can sign in after verification.';showTab('signin')})}
-    function signin(e){e.preventDefault();var email=document.getElementById('si_email').value.trim().toLowerCase();var pass=document.getElementById('si_pass').value;var err=document.getElementById('si_err');err.textContent='';var banned=JSON.parse(localStorage.getItem('qc_banned')||'[]');var users=getUsers();var u=users[email];hashPassword(pass).then(function(h){if(email===ADMIN_EMAIL){if(!u){err.textContent='Admin account not initialized. Use Sign Up to create it.';return}if(u.pwd!==h){err.textContent='Incorrect password'}else{var ans=(prompt('This projected started on a?')||'').trim().toLowerCase();if(ans!=='laptop'){err.textContent='Incorrect answer';return}setSession(u);location.href='index.html'}return}if(banned.indexOf(email)>-1){err.textContent='This email is banned';return}if(!u){err.textContent='User not found or not yet approved';return}if(u.pwd!==h){err.textContent='Incorrect password'}else if(!u.verified){err.textContent='Awaiting approval. Access denied until verified.'}else{setSession(u);location.href='index.html'}})}
+    function signin(e){e.preventDefault();var email=document.getElementById('si_email').value.trim().toLowerCase();var pass=document.getElementById('si_pass').value;var err=document.getElementById('si_err');err.textContent='';var banned=JSON.parse(localStorage.getItem('qc_banned')||'[]');var users=getUsers();var u=users[email];hashPassword(pass).then(function(h){if(email===ADMIN_EMAIL){if(!u){err.textContent='Admin account not initialized. Use Sign Up to create it.';return}if(u.pwd!==h){err.textContent='Incorrect password'}else{var q=ADMIN_QUESTIONS[Math.floor(Math.random()*ADMIN_QUESTIONS.length)];var a=(prompt(q.q)||'').trim().toLowerCase();var ok=false;for(var j=0;j<q.a.length;j++){if(a===q.a[j].toLowerCase()){ok=true;break}}if(!ok){err.textContent='Incorrect answer';return}setSession(u);location.href='index.html'}return}if(banned.indexOf(email)>-1){err.textContent='This email is banned';return}if(!u){err.textContent='User not found or not yet approved';return}if(u.pwd!==h){err.textContent='Incorrect password'}else if(!u.verified){err.textContent='Awaiting approval. Access denied until verified.'}else{setSession(u);location.href='index.html'}})}
   </script>
   <script>
     if(!window.firebaseConfig){window.firebaseConfig=null}

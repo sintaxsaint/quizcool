@@ -26,6 +26,11 @@
     .table th, .table td { border-bottom:1px solid #22314b; padding:8px 6px; text-align:left }
     .muted { color: var(--muted) }
     .actions { display:flex; gap:8px; margin-top:8px }
+    .pinboard { display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:12px }
+    .pin-note { position:relative; padding:16px 12px 12px; border-radius:12px; border:1px solid #22314b; box-shadow: 0 8px 16px rgba(0,0,0,.25); transform: rotate(var(--rot)); }
+    .pin-dot { position:absolute; top:8px; left:50%; transform: translateX(-50%); width:10px; height:10px; border-radius:50%; background:#ef4444; box-shadow: 0 0 0 2px #1a2233 }
+    .pin-text { font-size:14px }
+    .pin-time { color: var(--muted); font-size:12px; margin-top:8px }
   </style>
   <script>
     var ADMIN_EMAIL='ereadman2013@gmail.com'
@@ -39,13 +44,18 @@
     function deleteAccount(email){var users=loadUsers();if(users[email]){delete users[email];saveUsers(users)}var p=loadPending();if(p[email]){delete p[email];savePending(p)}var b=loadBanned();var i=b.indexOf(email);if(i>-1){b.splice(i,1);saveBanned(b)}var u=sessionStorage.getItem('qc_user');if(u){try{var me=JSON.parse(u);if(me.email===email){sessionStorage.removeItem('qc_user')}}catch(e){}}render()}
     function verifyExisting(email){var users=loadUsers();if(users[email]){users[email].verified=true;saveUsers(users);render()}}
     function verifyPending(email){var p=loadPending();var rec=p[email];if(!rec)return;var users=loadUsers();users[email]={name:rec.name,email:rec.email,nickname:rec.nickname,pwd:rec.pwd,verified:true};saveUsers(users);delete p[email];savePending(p);render()}
-    function render(){var users=loadUsers();var banned=loadBanned();var tbody=document.getElementById('users');tbody.innerHTML='';Object.keys(users).forEach(function(email){var u=users[email];var tr=document.createElement('tr');var td1=document.createElement('td');td1.textContent=u.name;var td2=document.createElement('td');td2.textContent=u.email;var td3=document.createElement('td');td3.textContent=u.nickname||'';var td4=document.createElement('td');td4.textContent=u.verified?'yes':'no';var td5=document.createElement('td');var wrap=document.createElement('div');wrap.style.display='flex';wrap.style.gap='8px';var isB=banned.indexOf(email)>-1;var banBtn=document.createElement('button');banBtn.className='btn';banBtn.textContent=isB?'Unban':'Ban';banBtn.disabled=email===ADMIN_EMAIL;banBtn.onclick=function(){if(email===ADMIN_EMAIL)return;var b=loadBanned();var i=b.indexOf(email);if(i>-1){b.splice(i,1)}else{b.push(email)}saveBanned(b);render()};var verBtn=document.createElement('button');verBtn.className='btn';verBtn.textContent='Verify';verBtn.onclick=function(){verifyExisting(email)};var delBtn=document.createElement('button');delBtn.className='btn';delBtn.textContent='Delete';delBtn.disabled=email===ADMIN_EMAIL;delBtn.onclick=function(){if(email===ADMIN_EMAIL)return;if(confirm('Delete account '+email+'?')){deleteAccount(email)}};wrap.append(banBtn,verBtn,delBtn);td5.appendChild(wrap);tr.append(td1,td2,td3,td4,td5);tbody.appendChild(tr)});
+    function readBoard(){try{var x=JSON.parse(localStorage.getItem('qc_board')||'[]');return Array.isArray(x)?x:[]}catch(e){return []}}
+    function writeBoard(list){localStorage.setItem('qc_board',JSON.stringify(list))}
+    function renderBoard(){var box=document.getElementById('boardList');if(!box)return;var items=readBoard();items.sort(function(a,b){var ap=a&&a.pinned?1:0;var bp=b&&b.pinned?1:0;if(ap!==bp)return bp-ap;return (b.ts||0)-(a.ts||0)});box.innerHTML='';box.className='pinboard';if(items.length===0){var empty=document.createElement('div');empty.className='muted';empty.textContent='No notices yet';box.appendChild(empty);return}var colors=['#fff8dc','#fef3c7','#fde68a','#e0f2fe','#dbeafe','#fce7f3','#e9d5ff','#dcfce7','#f3f4f6'];items.forEach(function(n){var note=document.createElement('div');note.className='pin-note';var color=colors[Math.floor(Math.random()*colors.length)];note.style.background=color;note.style.color='#0b0f1a';note.style.setProperty('--rot',(Math.random()*4-2).toFixed(1)+'deg');var dot=document.createElement('div');dot.className='pin-dot';dot.style.background=n&&n.pinned?'#22c55e':'#ef4444';var text=document.createElement('div');text.className='pin-text';text.textContent=n.text||'';var time=document.createElement('div');time.className='pin-time';time.textContent=new Date(n.ts||Date.now()).toLocaleString();note.append(dot,text,time);box.appendChild(note)})}
+    function renderManage(){var box=document.getElementById('boardManage');if(!box)return;var items=readBoard();box.innerHTML='';items.forEach(function(n,i){var row=document.createElement('div');row.className='actions';var t=document.createElement('span');t.textContent=n.text||'';t.style.flex='1';var pin=document.createElement('button');pin.className='btn';pin.textContent=(n&&n.pinned)?'Unpin':'Pin';pin.onclick=function(){var cur=readBoard();cur[i].pinned=!cur[i].pinned;cur[i].ts=Date.now();writeBoard(cur);renderBoard();renderManage()};var edit=document.createElement('button');edit.className='btn';edit.textContent='Edit';edit.onclick=function(){var cur=readBoard();var val=prompt('Edit notice',cur[i].text||'');if(val==null)return;val=val.trim();if(!val)return;cur[i].text=val;cur[i].ts=Date.now();writeBoard(cur);renderBoard();renderManage()};var del=document.createElement('button');del.className='btn';del.textContent='Delete';del.onclick=function(){var cur=readBoard();cur.splice(i,1);writeBoard(cur);renderBoard();renderManage()};row.append(t,pin,edit,del);box.appendChild(row)})}
+    function addNotice(e){e.preventDefault();var inp=document.getElementById('nb_text');var v=inp.value.trim();if(!v)return;var cur=readBoard();cur.unshift({text:v,ts:Date.now(),pinned:false});writeBoard(cur);inp.value='';renderBoard();renderManage()}
+    function render(){var users=loadUsers();var banned=loadBanned();var tbody=document.getElementById('users');tbody.innerHTML='';var qEl=document.getElementById('userSearch');var q=(qEl&&qEl.value.trim().toLowerCase())||'';var list=Object.keys(users).filter(function(email){var u=users[email]||{};var n=(u.name||'').toLowerCase();var k=(u.nickname||'').toLowerCase();return !q||n.indexOf(q)>-1||k.indexOf(q)>-1||email.toLowerCase().indexOf(q)>-1});list.forEach(function(email){var u=users[email];var tr=document.createElement('tr');var td1=document.createElement('td');td1.textContent=u.name;var td2=document.createElement('td');td2.textContent=u.email;var td3=document.createElement('td');td3.textContent=u.nickname||'';var td4=document.createElement('td');td4.textContent=u.verified?'yes':'no';var td5=document.createElement('td');var wrap=document.createElement('div');wrap.style.display='flex';wrap.style.gap='8px';var isB=banned.indexOf(email)>-1;var banBtn=document.createElement('button');banBtn.className='btn';banBtn.textContent=isB?'Unban':'Ban';banBtn.disabled=email===ADMIN_EMAIL;banBtn.onclick=function(){if(email===ADMIN_EMAIL)return;var b=loadBanned();var i=b.indexOf(email);if(i>-1){b.splice(i,1)}else{b.push(email)}saveBanned(b);render()};var verBtn=document.createElement('button');verBtn.className='btn';verBtn.textContent='Verify';verBtn.onclick=function(){verifyExisting(email)};var delBtn=document.createElement('button');delBtn.className='btn';delBtn.textContent='Delete';delBtn.disabled=email===ADMIN_EMAIL;delBtn.onclick=function(){if(email===ADMIN_EMAIL)return;if(confirm('Delete account '+email+'?')){deleteAccount(email)}};wrap.append(banBtn,verBtn,delBtn);td5.appendChild(wrap);tr.append(td1,td2,td3,td4,td5);tbody.appendChild(tr)});
       var bl=document.getElementById('banned');bl.innerHTML='';banned.forEach(function(e){var li=document.createElement('li');var span=document.createElement('span');span.textContent=e;var un=document.createElement('button');un.className='btn';un.style.marginLeft='8px';un.textContent='Unban';un.disabled=e===ADMIN_EMAIL;un.onclick=function(){var b=loadBanned();var i=b.indexOf(e);if(i>-1){b.splice(i,1);saveBanned(b);render()}};li.appendChild(span);li.appendChild(un);bl.appendChild(li)});
       var p=loadPending();var ptbody=document.getElementById('pending');ptbody.innerHTML='';Object.keys(p).forEach(function(email){var rec=p[email];var tr=document.createElement('tr');var td1=document.createElement('td');td1.textContent=rec.name;var td2=document.createElement('td');td2.textContent=rec.email;var td3=document.createElement('td');td3.textContent=rec.nickname||'';var td4=document.createElement('td');var dt=new Date(rec.ts||Date.now());td4.textContent=dt.toLocaleString();var td5=document.createElement('td');var wrap=document.createElement('div');wrap.style.display='flex';wrap.style.gap='8px';var v=document.createElement('button');v.className='btn';v.textContent='Verify';v.onclick=function(){verifyPending(email)};var d=document.createElement('button');d.className='btn';d.textContent='Reject';d.onclick=function(){if(confirm('Reject '+email+'?')){var p=loadPending();delete p[email];savePending(p);render()}};wrap.append(v,d);td5.appendChild(wrap);tr.append(td1,td2,td3,td4,td5);ptbody.appendChild(tr)})}
     function manualBan(e){e.preventDefault();var email=document.getElementById('ban_email').value.trim().toLowerCase();if(!email)return;var b=loadBanned();if(b.indexOf(email)===-1){b.push(email);saveBanned(b);render();document.getElementById('ban_email').value=''} }
   </script>
 </head>
-<body onload="ensureDev();render()">
+<body onload="ensureDev();render();renderBoard();renderManage()">
   <div class="topbar">
     <div class="brand">
       <div class="logo">QC</div>
@@ -60,9 +70,31 @@
     </div>
   </div>
   <div class="container">
+    <div class="card">
+      <h3 style="margin:0 0 8px">Inbox</h3>
+      <div class="actions">
+        <a class="btn" href="requests_admin.html">View Requests</a>
+        <a class="btn" href="reports_admin.html">View Reports</a>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 8px">Notice Board</h3>
+      <div id="boardList"></div>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 8px">Notice Board Editor</h3>
+      <form onsubmit="addNotice(event)" class="actions">
+        <input id="nb_text" type="text" placeholder="Write a notice" style="flex:1;background:#0f1624;border:1px solid #22314b;color:var(--text);border-radius:10px;padding:10px 12px">
+        <button class="btn" type="submit">Add</button>
+      </form>
+      <div id="boardManage" style="margin-top:8px"></div>
+    </div>
     <div class="grid">
       <div class="card">
         <h3 style="margin:0 0 8px">Users</h3>
+        <div class="actions">
+          <input id="userSearch" type="text" placeholder="Search by name, nickname, or email" oninput="render()" style="flex:1;background:#0f1624;border:1px solid #22314b;color:var(--text);border-radius:10px;padding:10px 12px">
+        </div>
         <table class="table">
           <thead>
             <tr><th>Name</th><th>Email</th><th>Nickname</th><th>Verified</th><th>Actions</th></tr>

@@ -35,16 +35,26 @@
     @media (max-width: 640px) { .grid { grid-template-columns: repeat(2, 1fr) } header { flex-direction:column; align-items:flex-start } }
     .card { display:flex; flex-direction:column; gap:10px; background: var(--card); border:1px solid #22314b; border-radius:14px; padding:12px; transition:.15s ease }
     .card:hover { transform: translateY(-2px); border-color:#2c3d61 }
-    .thumb { height:110px; border-radius:10px; background: #0f1624; display:grid; place-items:center; font-weight:700; font-size: 22px; letter-spacing:.5px; overflow:hidden }
+    .thumb { aspect-ratio: 1 / 1; width:100%; border-radius:10px; background: #0f1624; display:grid; place-items:center; font-weight:700; font-size: 22px; letter-spacing:.5px; overflow:hidden }
     .thumb img { width:100%; height:100%; object-fit:cover; display:block }
     .title { font-weight:700; font-size:14px }
     .meta { display:flex; justify-content:space-between; align-items:center; color: var(--muted); font-size:12px }
     footer { margin: 28px 0 8px; color: var(--muted); font-size: 12px }
     .pill { padding:4px 8px; border-radius:999px; border:1px solid #2c3d61; font-size:11px }
+    .board-item { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; padding:8px 10px; border:1px dashed #2c3d61; border-radius:10px }
+    .board-item + .board-item { margin-top:8px }
+    .board-text { font-size:14px }
+    .board-time { color: var(--muted); font-size:12px; white-space:nowrap }
+    #noticeBoard { margin-top: 16px }
+    .pinboard { display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:12px; padding:12px; border:1px solid #22314b; border-radius:14px; background: linear-gradient(180deg, rgba(124,77,255,.08), transparent 60%) }
+    .pin-note { position:relative; padding:16px 12px 12px; border-radius:12px; border:1px solid #22314b; box-shadow: 0 8px 16px rgba(0,0,0,.25); transform: rotate(var(--rot)); }
+    .pin-dot { position:absolute; top:8px; left:50%; transform: translateX(-50%); width:10px; height:10px; border-radius:50%; background:#ef4444; box-shadow: 0 0 0 2px #1a2233 }
+    .pin-text { font-size:14px }
+    .pin-time { color: var(--muted); font-size:12px; margin-top:8px }
   </style>
 </head>
 <body>
-  <script>(function(){var u=sessionStorage.getItem('qc_user');if(!u){location.href='auth.html';return}try{var me=JSON.parse(u)}catch(e){sessionStorage.removeItem('qc_user');location.href='auth.html';return}var banned=[];try{banned=JSON.parse(localStorage.getItem('qc_banned')||'[]')}catch(e){}if(me.email!=='ereadman2013@gmail.com'&&Array.isArray(banned)&&banned.indexOf(me.email)>-1){sessionStorage.removeItem('qc_user');location.href='auth.html';return}if(me.email==='ereadman2013@gmail.com'&&confirm('Open dev panel?')){location.href='dev.html'}})()</script>
+  <script>(function(){var u=sessionStorage.getItem('qc_user');if(!u){location.href='auth.html';return}try{var me=JSON.parse(u)}catch(e){sessionStorage.removeItem('qc_user');location.href='auth.html';return}var banned=[];try{banned=JSON.parse(localStorage.getItem('qc_banned')||'[]')}catch(e){}if(me.email!=='ereadman2013@gmail.com'&&Array.isArray(banned)&&banned.indexOf(me.email)>-1){sessionStorage.removeItem('qc_user');location.href='auth.html';return}if(me.email==='ereadman2013@gmail.com'&&confirm('Open dev panel?')){var Q=[{q:'This project started on a?',a:['laptop']},{q:'Site name?',a:['quizcool']},{q:'Hosting platform used?',a:['github pages','github','pages']},{q:'Primary dev email?',a:['ereadman2013@gmail.com']},{q:'Main homepage file name?',a:['index.html']},{q:'Auth page file name?',a:['auth.html']},{q:'Games folder name?',a:['games']},{q:'Brand acronym shown in the logo?',a:['qc']},{q:'Primary languages used?',a:['html','javascript','js']}];var q=Q[Math.floor(Math.random()*Q.length)];var a=(prompt(q.q)||'').trim().toLowerCase();var ok=false;for(var i=0;i<q.a.length;i++){if(a===q.a[i].toLowerCase()){ok=true;break}}if(!ok){alert('Incorrect answer');return}location.href='dev.html'}})()</script>
   <div class="container">
     <header>
       <div class="brand">
@@ -73,6 +83,8 @@
       </div>
     </section>
 
+    <section id="noticeBoard" class="card"></section>
+
     <section class="grid" id="grid"></section>
 
     <footer>
@@ -82,6 +94,7 @@
   </div>
 
   <script>
+    const QA_THUMB = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="%234f9cf0"/><stop offset="100%" stop-color="%237c4dff"/></linearGradient></defs><rect rx="24" width="200" height="200" fill="url(%23g)"/><text x="100" y="122" font-family="Inter,Arial,sans-serif" font-size="96" font-weight="700" text-anchor="middle" fill="%23ffffff">QA</text></svg>'
     const items = [
       { title: 'Slope', tag: 'racing', url: 'games/slope.html', color: '#1f8efa', thumb: 'thumbnails/slope.png' },
       { title: '2048', tag: 'puzzle', url: 'games/2048.html', color: '#f59f00' },
@@ -89,7 +102,7 @@
       { title: 'Cookie Clicker', tag: 'puzzle', url: '#', color: '#45b36b' },
       { title: 'Retro Bowl', tag: 'action', url: '#', color: '#7c4dff' },
       { title: 'Tetris', tag: 'puzzle', url: 'games/tetris.html', color: '#22c55e' },
-      { title: 'Krunker', tag: 'action', url: '#', color: '#14b8a6' },
+      { title: 'Quizall', tag: 'action', url: 'games/quizall.html', color: '#14b8a6', thumb: QA_THUMB },
       { title: 'Geometry Dash', tag: 'action', url: 'games/gd/geomatrydash.html', color: '#ef4444', thumb: 'thumbnails/gdlogo.jpg' },
       { title: 'Calculator', tag: 'tools', url: 'games/calculator.html', color: '#6b8af5' },
       { title: 'Notes', tag: 'tools', url: 'games/notes.html', color: '#9b59b6' },
@@ -99,7 +112,32 @@
 
     const grid = document.getElementById('grid')
     const searchInput = document.getElementById('searchInput')
+    const boardEl = document.getElementById('noticeBoard')
     
+    function readNotices(){
+      try{const x=JSON.parse(localStorage.getItem('qc_board')||'[]');return Array.isArray(x)?x:[]}catch(e){return []}
+    }
+    function renderBoard(){
+      if(!boardEl) return;
+      const items=readNotices();
+      boardEl.innerHTML='';
+      boardEl.className='card pinboard'
+      if(items.length===0){
+        const empty=document.createElement('div');empty.className='meta';empty.textContent='No notices yet';
+        boardEl.append(empty);return;
+      }
+      const colors=['#fff8dc','#fef3c7','#fde68a','#e0f2fe','#dbeafe','#fce7f3','#e9d5ff','#dcfce7','#f3f4f6']
+      items.slice(0,6).forEach(n=>{
+        const note=document.createElement('div');note.className='pin-note';
+        const color=colors[Math.floor(Math.random()*colors.length)];
+        note.style.background=color; note.style.color='#0b0f1a';
+        note.style.setProperty('--rot', (Math.random()*4-2).toFixed(1)+'deg')
+        const dot=document.createElement('div');dot.className='pin-dot'
+        const text=document.createElement('div');text.className='pin-text';text.textContent=n.text||''
+        const time=document.createElement('div');time.className='pin-time';time.textContent=new Date(n.ts||Date.now()).toLocaleString()
+        note.append(dot,text,time);boardEl.append(note)
+      })
+    }
 
     function render(list) {
       grid.innerHTML = ''
@@ -142,8 +180,10 @@
 
     searchInput.addEventListener('input', applyFilter)
     window.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); searchInput.focus() } })
+    window.addEventListener('storage', e => { if(e && e.key==='qc_board') renderBoard() })
 
     render(items)
+    renderBoard()
   </script>
 </body>
 </html>
