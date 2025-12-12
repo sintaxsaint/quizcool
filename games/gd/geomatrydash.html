@@ -204,11 +204,44 @@
         <script src="build/UnityLoader.js"></script>
         <script>
             (function(){
-                var local = "build/GeometryDashLite.json";
-                var remote = "https://rawcdn.githack.com/genizy/google-class/main/gdlite/Build/GeometryDashLite.json";
-                fetch(local, { method: 'HEAD' })
-                    .then(function(){ UnityLoader.instantiate("gameContainer", local, { onProgress: UnityProgress }); })
-                    .catch(function(){ UnityLoader.instantiate("gameContainer", remote, { onProgress: UnityProgress }); });
+                function head(url){return fetch(url,{method:'HEAD'}).then(function(r){if(!r.ok)throw new Error('Missing '+url)})}
+                var local={
+                  data:"build/GeometryDashLite.data.unityweb",
+                  framework:"build/GeometryDashLite.framework.js.unityweb",
+                  wasm:"build/GeometryDashLite.wasm.unityweb"
+                };
+                var remote={
+                  data:"https://rawcdn.githack.com/genizy/google-class/main/gdlite/Build/GeometryDashLite.data.unityweb",
+                  framework:"https://rawcdn.githack.com/genizy/google-class/main/gdlite/Build/GeometryDashLite.framework.js.unityweb",
+                  wasm:"https://rawcdn.githack.com/genizy/google-class/main/gdlite/Build/GeometryDashLite.wasm.unityweb"
+                };
+                Promise.all([head(local.data),head(local.framework),head(local.wasm)]).then(function(){
+                  var manifest={
+                    companyName:"Quizcool",
+                    productName:"Geometry Dash Lite",
+                    productVersion:"1.0",
+                    unityVersion:"2019.4.0f1",
+                    backgroundColor:"#000000",
+                    dataUrl:local.data,
+                    wasmFrameworkUrl:local.framework,
+                    wasmCodeUrl:local.wasm
+                  };
+                  var url=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/json"}));
+                  UnityLoader.instantiate("gameContainer", url, { onProgress: UnityProgress });
+                }).catch(function(){
+                  var manifest={
+                    companyName:"Quizcool",
+                    productName:"Geometry Dash Lite",
+                    productVersion:"1.0",
+                    unityVersion:"2019.4.0f1",
+                    backgroundColor:"#000000",
+                    dataUrl:remote.data,
+                    wasmFrameworkUrl:remote.framework,
+                    wasmCodeUrl:remote.wasm
+                  };
+                  var url=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/json"}));
+                  UnityLoader.instantiate("gameContainer", url, { onProgress: UnityProgress });
+                });
             })();
 
             function UnityProgress(gameInstance, progress) {
