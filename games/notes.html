@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quizcool — Notes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#0b0f1a; --card:#121826; --muted:#8aa0b6; --text:#e6eef8; --accent:#4f9cf0; --accent2:#7c4dff }
+    * { box-sizing: border-box }
+    html,body { height:100% }
+    body { margin:0; background: radial-gradient(1200px 600px at 80% -10%, #1b2a40 0%, #0b0f1a 45%), var(--bg); color: var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif }
+    .topbar { position: sticky; top:0; z-index:10; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; background:#0e1524cc; backdrop-filter: blur(6px); border-bottom:1px solid #22314b }
+    .brand { display:flex; align-items:center; gap:10px }
+    .logo { width:32px; height:32px; border-radius:10px; background: linear-gradient(135deg, var(--accent), var(--accent2)); display:grid; place-items:center; font-weight:700 }
+    .title { font-weight:700 }
+    .btn { background:#1a2233; border:1px solid #28324a; color:var(--text); padding:8px 12px; border-radius:10px; font-weight:600; text-decoration:none }
+    .btn:hover { background:#212a3f }
+    .container { max-width: 900px; margin: 0 auto; padding: 16px }
+    .grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:12px }
+    .card { background: var(--card); border:1px solid #22314b; border-radius:14px; padding:12px; display:flex; flex-direction:column; gap:10px }
+    .field { display:flex; flex-direction:column; gap:8px }
+    input, textarea { background:#0f1624; border:1px solid #22314b; color:var(--text); border-radius:10px; padding:10px 12px; font-size:14px }
+    textarea { min-height: 120px; resize: vertical }
+    .note { background:#0f1624; border:1px solid #22314b; border-radius:12px; padding:10px }
+    .note h3 { margin:0 0 8px; font-size:14px }
+    .note small { color: var(--muted) }
+    .actions { display:flex; gap:8px }
+  </style>
+</head>
+<body>
+  <script>(function(){var u=sessionStorage.getItem('qc_user');if(!u){location.href='../auth.html';return}try{var me=JSON.parse(u)}catch(e){sessionStorage.removeItem('qc_user');location.href='../auth.html';return}var banned=[];try{banned=JSON.parse(localStorage.getItem('qc_banned')||'[]')}catch(e){}if(me.email!=='ereadman2013@gmail.com'&&Array.isArray(banned)&&banned.indexOf(me.email)>-1){sessionStorage.removeItem('qc_user');location.href='../auth.html';return}if(me.email==='ereadman2013@gmail.com'&&confirm('Open dev panel?')){location.href='../dev.html'}})()</script>
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">QC</div>
+      <div>
+        <div class="title">Notes</div>
+        <small style="color:var(--muted)">Quizcool</small>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <a class="btn" href="../index.html">Back</a>
+      <a class="btn" href="#" onclick="sessionStorage.removeItem('qc_user');location.href='../auth.html'">Sign Out</a>
+    </div>
+  </div>
+  <div class="container">
+    <div class="grid">
+      <div class="card">
+        <div class="field">
+          <input id="title" type="text" placeholder="Title">
+          <textarea id="body" placeholder="Write your note"></textarea>
+        </div>
+        <div class="actions">
+          <a class="btn" href="#" id="save">Save</a>
+          <a class="btn" href="#" id="clear">Clear All</a>
+        </div>
+      </div>
+      <div class="card" style="grid-column: span 2">
+        <div id="list"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    var storeKey='qc_notes'
+    function load(){try{var x=JSON.parse(sessionStorage.getItem(storeKey)||'[]');return Array.isArray(x)?x:[]}catch(e){return []}}
+    function saveAll(items){sessionStorage.setItem(storeKey,JSON.stringify(items))}
+    function render(){var items=load();var list=document.getElementById('list');list.innerHTML='';items.forEach(function(n,i){var d=document.createElement('div');d.className='note';var h=document.createElement('h3');h.textContent=n.title||'Untitled';var s=document.createElement('small');s.textContent=new Date(n.ts).toLocaleString();var p=document.createElement('p');p.textContent=n.body||'';var a=document.createElement('div');a.className='actions';var del=document.createElement('a');del.className='btn';del.href='#';del.textContent='Delete';del.addEventListener('click',function(e){e.preventDefault();var items=load();items.splice(i,1);saveAll(items);render()});a.appendChild(del);d.append(h,s,p,a);list.appendChild(d)})}
+    document.getElementById('save').addEventListener('click',function(e){e.preventDefault();var t=document.getElementById('title').value.trim();var b=document.getElementById('body').value.trim();if(!t&&!b)return;var items=load();items.unshift({title:t,body:b,ts:Date.now()});saveAll(items);document.getElementById('title').value='';document.getElementById('body').value='';render()})
+    document.getElementById('clear').addEventListener('click',function(e){e.preventDefault();if(confirm('Clear all notes?')){saveAll([]);render()}})
+    var hint=document.createElement('div');hint.className='actions';var small=document.createElement('small');small.style.color='var(--muted)';small.textContent='Notes are temporary and clear when the browser tab closes.';hint.appendChild(small);document.querySelector('.card[style]').appendChild(hint)
+    render()
+  </script>
+</body>
+</html>

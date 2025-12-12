@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quizcool — Sign In</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#0b0f1a; --card:#121826; --muted:#8aa0b6; --text:#e6eef8; --accent:#4f9cf0; --accent2:#7c4dff }
+    * { box-sizing: border-box }
+    html,body { height:100% }
+    body { margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: radial-gradient(1200px 600px at 80% -10%, #1b2a40 0%, #0b0f1a 45%), var(--bg); color: var(--text) }
+    a { color: inherit; text-decoration: none }
+    .container { max-width: 900px; margin: 0 auto; padding: 24px }
+    .topbar { position: sticky; top:0; z-index:10; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; background:#0e1524cc; backdrop-filter: blur(6px); border-bottom:1px solid #22314b }
+    .brand { display:flex; align-items:center; gap:10px }
+    .logo { width:32px; height:32px; border-radius:10px; background: linear-gradient(135deg, var(--accent), var(--accent2)); display:grid; place-items:center; font-weight:700 }
+    .title { font-weight:700 }
+    .btn { background:#1a2233; border:1px solid #28324a; color:var(--text); padding:8px 12px; border-radius:10px; font-weight:600 }
+    .btn:hover { background:#212a3f }
+    .tabs { display:flex; gap:8px; margin-top:16px }
+    .card { background: var(--card); border:1px solid #22314b; border-radius:14px; padding:16px; margin-top:18px }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px }
+    .field { display:flex; flex-direction:column; gap:8px; margin-bottom:12px }
+    label { color: var(--muted); font-size:13px }
+    input { background:#0f1624; border:1px solid #22314b; color:var(--text); border-radius:10px; padding:10px 12px; font-size:14px }
+    .hint { color: var(--muted); font-size: 12px; margin-top: 8px }
+    .error { color:#ef4444; font-size:12px; margin-top:6px }
+    .hidden { display:none }
+  </style>
+  <script>
+    var ADMIN_EMAIL='ereadman2013@gmail.com'
+    function toHex(buffer){var h=[];var v=new Uint8Array(buffer);for(var i=0;i<v.length;i++){var s=v[i].toString(16);if(s.length===1)s='0'+s;h.push(s)}return h.join('')}
+    function hashPassword(p){var enc=new TextEncoder().encode(p);return crypto.subtle.digest('SHA-256',enc).then(toHex)}
+    function getUsers(){try{var x=JSON.parse(localStorage.getItem('qc_users')||'{}');return x&&typeof x==='object'?x:{} }catch(e){return {}}}
+    function setUsers(obj){localStorage.setItem('qc_users',JSON.stringify(obj))}
+    function setSession(u){sessionStorage.setItem('qc_user',JSON.stringify({name:u.name,email:u.email,nickname:u.nickname||''}))}
+    function showTab(tab){document.getElementById('signup').classList.toggle('hidden',tab!=='signup');document.getElementById('signin').classList.toggle('hidden',tab!=='signin')}
+    function getPending(){try{var x=JSON.parse(localStorage.getItem('qc_pending')||'{}');return x&&typeof x==='object'?x:{} }catch(e){return {}}}
+    function setPending(obj){localStorage.setItem('qc_pending',JSON.stringify(obj))}
+    function clearPending(email){var p=getPending();delete p[email];setPending(p)}
+    function signup(e){e.preventDefault();var name=document.getElementById('su_name').value.trim();var email=document.getElementById('su_email').value.trim().toLowerCase();var nick=document.getElementById('su_nick').value.trim();var pass=document.getElementById('su_pass').value;var err=document.getElementById('su_err');err.textContent='';if(!name||!email||!pass){err.textContent='Fill in required fields';return}if(pass.length<6){err.textContent='Password must be at least 6 characters';return}var banned=JSON.parse(localStorage.getItem('qc_banned')||'[]');var users=getUsers();if(users[email]){err.textContent='User already exists';return}hashPassword(pass).then(function(h){if(email===ADMIN_EMAIL){users[email]={name:name,email:email,nickname:nick,pwd:h,verified:true};setUsers(users);err.textContent='Admin account created. Please sign in.';showTab('signin');return}if(banned.indexOf(email)>-1){err.textContent='This email is banned';return}var p=getPending();p[email]={name:name,email:email,nickname:nick,pwd:h,ts:Date.now()};setPending(p);err.textContent='Submitted for approval. You can sign in after verification.';showTab('signin')})}
+    function signin(e){e.preventDefault();var email=document.getElementById('si_email').value.trim().toLowerCase();var pass=document.getElementById('si_pass').value;var err=document.getElementById('si_err');err.textContent='';var banned=JSON.parse(localStorage.getItem('qc_banned')||'[]');var users=getUsers();var u=users[email];hashPassword(pass).then(function(h){if(email===ADMIN_EMAIL){if(!u){err.textContent='Admin account not initialized. Use Sign Up to create it.';return}if(u.pwd!==h){err.textContent='Incorrect password'}else{var ans=(prompt('This projected started on a?')||'').trim().toLowerCase();if(ans!=='laptop'){err.textContent='Incorrect answer';return}setSession(u);location.href='index.html'}return}if(banned.indexOf(email)>-1){err.textContent='This email is banned';return}if(!u){err.textContent='User not found or not yet approved';return}if(u.pwd!==h){err.textContent='Incorrect password'}else if(!u.verified){err.textContent='Awaiting approval. Access denied until verified.'}else{setSession(u);location.href='index.html'}})}
+  </script>
+  <script>
+    if(!window.firebaseConfig){window.firebaseConfig=null}
+  </script>
+  <script type="module">
+    (async function(){
+      if(!(window.firebaseConfig && window.useFirebaseAuth)) return;
+      const appMod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js')
+      const authMod = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js')
+      const app = appMod.initializeApp(window.firebaseConfig)
+      const auth = authMod.getAuth(app)
+      window.signup = function(e){
+        e.preventDefault()
+        var name=document.getElementById('su_name').value.trim()
+        var email=document.getElementById('su_email').value.trim().toLowerCase()
+        var nick=document.getElementById('su_nick').value.trim()
+        var pass=document.getElementById('su_pass').value
+        var err=document.getElementById('su_err')
+        err.textContent=''
+        if(!name||!email||!pass){err.textContent='Fill in required fields';return}
+        if(pass.length<6){err.textContent='Password must be at least 6 characters';return}
+        var banned=[];try{banned=JSON.parse(localStorage.getItem('qc_banned')||'[]')}catch(e){}
+        if(Array.isArray(banned)&&banned.indexOf(email)>-1){err.textContent='This email is banned';return}
+        authMod.createUserWithEmailAndPassword(auth,email,pass)
+          .then(async function(cred){
+            if(name){await authMod.updateProfile(cred.user,{displayName:name}).catch(function(){})}
+            err.textContent='Account created. Admin approval required.'
+          })
+          .catch(function(e){err.textContent=e&&e.message?e.message:'Signup failed'})
+      }
+      window.signin = function(e){
+        e.preventDefault()
+        var email=document.getElementById('si_email').value.trim().toLowerCase()
+        var pass=document.getElementById('si_pass').value
+        var err=document.getElementById('si_err')
+        err.textContent=''
+        var banned=[];try{banned=JSON.parse(localStorage.getItem('qc_banned')||'[]')}catch(e){}
+        if(Array.isArray(banned)&&banned.indexOf(email)>-1){err.textContent='This email is banned';return}
+        authMod.signInWithEmailAndPassword(auth,email,pass)
+          .then(function(cred){
+            err.textContent='Admin approval required';authMod.signOut(auth);return
+            setSession({name:cred.user.displayName||'',email:cred.user.email,nickname:''})
+            location.href='index.html'
+          })
+          .catch(function(e){err.textContent=e&&e.message?e.message:'Sign in failed'})
+      }
+    })()
+  </script>
+</head>
+<body>
+  <script>if(sessionStorage.getItem('qc_user')){location.href='index.html'}</script>
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">QC</div>
+      <div>
+        <div class="title">Sign In</div>
+        <small style="color:var(--muted)">Quizcool</small>
+      </div>
+    </div>
+    <a class="btn" href="index.html">Home</a>
+  </div>
+  <div class="container">
+    <div class="tabs">
+      <a href="#" class="btn" onclick="showTab('signin')">Sign In</a>
+      <a href="#" class="btn" onclick="showTab('signup')">Sign Up</a>
+    </div>
+    <div class="grid">
+      <div id="signin" class="card">
+        <form onsubmit="signin(event)">
+          <div class="field">
+            <label for="si_email">Email</label>
+            <input id="si_email" type="email" required>
+          </div>
+          <div class="field">
+            <label for="si_pass">Password</label>
+            <input id="si_pass" type="password" required>
+          </div>
+          <button type="submit" class="btn">Sign In</button>
+          <div class="error" id="si_err"></div>
+          <div class="hint">Accounts are stored locally in your browser.</div>
+        </form>
+      </div>
+      <div id="signup" class="card hidden">
+        <form onsubmit="signup(event)">
+          <div class="field">
+            <label for="su_name">Name</label>
+            <input id="su_name" type="text" required>
+          </div>
+          <div class="field">
+            <label for="su_email">Email</label>
+            <input id="su_email" type="email" required>
+          </div>
+          <div class="field">
+            <label for="su_nick">Nickname (optional)</label>
+            <input id="su_nick" type="text">
+          </div>
+          <div class="field">
+            <label for="su_pass">Password</label>
+            <input id="su_pass" type="password" required>
+          </div>
+          <button type="submit" class="btn">Create Account</button>
+          <div class="error" id="su_err"></div>
+          <div class="hint">Passwords are hashed locally. This is not a secure production login.</div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script>showTab('signin')</script>
+</body>
+</html>

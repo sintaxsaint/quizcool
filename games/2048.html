@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quizcool — 2048</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#0b0f1a; --card:#121826; --muted:#8aa0b6; --text:#e6eef8; --accent:#4f9cf0; --accent2:#7c4dff }
+    * { box-sizing: border-box }
+    html,body { height:100% }
+    body { margin:0; background: radial-gradient(1200px 600px at 80% -10%, #1b2a40 0%, #0b0f1a 45%), var(--bg); color: var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif }
+    .topbar { position: sticky; top:0; z-index:10; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; background:#0e1524cc; backdrop-filter: blur(6px); border-bottom:1px solid #22314b }
+    .brand { display:flex; align-items:center; gap:10px }
+    .logo { width:32px; height:32px; border-radius:10px; background: linear-gradient(135deg, var(--accent), var(--accent2)); display:grid; place-items:center; font-weight:700 }
+    .title { font-weight:700 }
+    .btn { background:#1a2233; border:1px solid #28324a; color:var(--text); padding:8px 12px; border-radius:10px; font-weight:600; text-decoration:none }
+    .btn:hover { background:#212a3f }
+    .wrap { height: calc(100vh - 58px); display:flex; align-items:center; justify-content:center; padding:16px }
+    .panel { display:flex; flex-direction:column; gap:12px; align-items:center }
+    .score { color: var(--muted) }
+    .board { width: 360px; height: 360px; background: #0f1624; border:1px solid #22314b; border-radius:12px; padding:8px; display:grid; grid-template-columns: repeat(4, 1fr); gap:8px }
+    .cell { background:#121826; border:1px solid #22314b; border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:22px; transform: scale(1); transition: transform 160ms ease }
+    .cell.spawn { transform: scale(0); animation: spawn 160ms forwards }
+    .cell.merge { animation: merge 160ms forwards }
+    @keyframes spawn { to { transform: scale(1) } }
+    @keyframes merge { 50% { transform: scale(1.15) } to { transform: scale(1) } }
+    .c2{background:#1a2233} .c4{background:#213049} .c8{background:#27415f} .c16{background:#2d5276} .c32{background:#34638c} .c64{background:#3a74a2} .c128{background:#4185b9} .c256{background:#4796cf} .c512{background:#4ea7e5} .c1024{background:#56b9fb} .c2048{background:#7c4dff}
+  </style>
+</head>
+<body>
+  <script>(function(){var u=sessionStorage.getItem('qc_user');if(!u){location.href='../auth.html';return}try{var me=JSON.parse(u)}catch(e){sessionStorage.removeItem('qc_user');location.href='../auth.html';return}var banned=[];try{banned=JSON.parse(localStorage.getItem('qc_banned')||'[]')}catch(e){}if(me.email!=='ereadman2013@gmail.com'&&Array.isArray(banned)&&banned.indexOf(me.email)>-1){sessionStorage.removeItem('qc_user');location.href='../auth.html';return}if(me.email==='ereadman2013@gmail.com'&&confirm('Open dev panel?')){location.href='../dev.html'}})()</script>
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">QC</div>
+      <div>
+        <div class="title">2048</div>
+        <small style="color:var(--muted)">Quizcool</small>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <a class="btn" href="../index.html">Back</a>
+      <a class="btn" href="#" onclick="sessionStorage.removeItem('qc_user');location.href='../auth.html'">Sign Out</a>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="panel">
+      <div class="score">Score: <span id="score">0</span></div>
+      <div class="board" id="board"></div>
+      <div class="actions"><a class="btn" href="#" id="new">New Game</a></div>
+    </div>
+  </div>
+  <script>
+    var size=4
+    var tiles=[]
+    var prevTiles=[]
+    var score=0
+    var lastSpawnIdx=-1
+    function reset(){tiles=new Array(size*size).fill(0);prevTiles=tiles.slice();score=0;updateScore();addTile();addTile();render()}
+    function idx(r,c){return r*size+c}
+    function addTile(){var empty=[];for(var i=0;i<tiles.length;i++){if(tiles[i]===0)empty.push(i)}if(empty.length){var p=empty[Math.floor(Math.random()*empty.length)];tiles[p]=Math.random()<0.9?2:4;lastSpawnIdx=p}}
+    function render(){var b=document.getElementById('board');b.innerHTML='';for(var i=0;i<tiles.length;i++){var v=tiles[i];var d=document.createElement('div');var cls='cell'+(v?(' c'+v):'');if(i===lastSpawnIdx&&v){cls+=' spawn'}else if(v&&prevTiles[i]&&v===prevTiles[i]*2){cls+=' merge'}d.className=cls;d.textContent=v||'';b.appendChild(d)}prevTiles=tiles.slice();lastSpawnIdx=-1}
+    function updateScore(){document.getElementById('score').textContent=score}
+    function slideRow(row){var arr=row.filter(function(x){return x});for(var i=0;i<arr.length-1;i++){if(arr[i]===arr[i+1]){arr[i]*=2;score+=arr[i];arr[i+1]=0}}arr=arr.filter(function(x){return x});while(arr.length<size)arr.push(0);return arr}
+    function moveLeft(){var moved=false;for(var r=0;r<size;r++){var row=[];for(var c=0;c<size;c++)row.push(tiles[idx(r,c)]);var n=slideRow(row);for(var c=0;c<size;c++){if(tiles[idx(r,c)]!==n[c]){tiles[idx(r,c)]=n[c];moved=true}}}if(moved){addTile();updateScore();render()}}
+    function moveRight(){var moved=false;for(var r=0;r<size;r++){var row=[];for(var c=0;c<size;c++)row.push(tiles[idx(r,c)]);row=row.reverse();var n=slideRow(row).reverse();for(var c=0;c<size;c++){if(tiles[idx(r,c)]!==n[c]){tiles[idx(r,c)]=n[c];moved=true}}}if(moved){addTile();updateScore();render()}}
+    function moveUp(){var moved=false;for(var c=0;c<size;c++){var col=[];for(var r=0;r<size;r++)col.push(tiles[idx(r,c)]);var n=slideRow(col);for(var r=0;r<size;r++){if(tiles[idx(r,c)]!==n[r]){tiles[idx(r,c)]=n[r];moved=true}}}if(moved){addTile();updateScore();render()}}
+    function moveDown(){var moved=false;for(var c=0;c<size;c++){var col=[];for(var r=0;r<size;r++)col.push(tiles[idx(r,c)]);col=col.reverse();var n=slideRow(col).reverse();for(var r=0;r<size;r++){if(tiles[idx(r,c)]!==n[r]){tiles[idx(r,c)]=n[r];moved=true}}}if(moved){addTile();updateScore();render()}}
+    function canMove(){for(var r=0;r<size;r++){for(var c=0;c<size;c++){var v=tiles[idx(r,c)];if(v===0)return true;if(c+1<size&&tiles[idx(r,c+1)]===v)return true;if(r+1<size&&tiles[idx(r+1,c)]===v)return true}}return false}
+    document.addEventListener('keydown',function(e){var k=e.key.toLowerCase();if(['arrowleft','a'].includes(k)){e.preventDefault();moveLeft()}else if(['arrowright','d'].includes(k)){e.preventDefault();moveRight()}else if(['arrowup','w'].includes(k)){e.preventDefault();moveUp()}else if(['arrowdown','s'].includes(k)){e.preventDefault();moveDown()}})
+    document.getElementById('new').addEventListener('click',function(e){e.preventDefault();reset()})
+    reset()
+  </script>
+</body>
+</html>

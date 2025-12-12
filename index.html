@@ -35,8 +35,8 @@
     @media (max-width: 640px) { .grid { grid-template-columns: repeat(2, 1fr) } header { flex-direction:column; align-items:flex-start } }
     .card { display:flex; flex-direction:column; gap:10px; background: var(--card); border:1px solid #22314b; border-radius:14px; padding:12px; transition:.15s ease }
     .card:hover { transform: translateY(-2px); border-color:#2c3d61 }
-    .thumb { height:110px; border-radius:10px; background: #0f1624; display:grid; place-items:center; font-weight:700; font-size: 22px; letter-spacing:.5px; overflow:hidden; position:relative }
-    .thumb img { display:block; width:100%; height:100%; object-fit:cover; object-position:center; border-radius:inherit }
+    .thumb { height:110px; border-radius:10px; background: #0f1624; display:grid; place-items:center; font-weight:700; font-size: 22px; letter-spacing:.5px; overflow:hidden }
+    .thumb img { width:100%; height:100%; object-fit:cover; display:block }
     .title { font-weight:700; font-size:14px }
     .meta { display:flex; justify-content:space-between; align-items:center; color: var(--muted); font-size:12px }
     footer { margin: 28px 0 8px; color: var(--muted); font-size: 12px }
@@ -44,20 +44,7 @@
   </style>
 </head>
 <body>
-  <script>
-    (function(){
-      const REMOTE_ORIGIN = 'https://sintaxsaint.github.io/quizcool'
-      const isLocal = location.protocol === 'file:' || /^(localhost|127\.0\.0\.1)(:\\d+)?$/.test(location.host)
-      if (!isLocal) return
-      let path = location.pathname.replace(/\\/g,'/')
-      const anchor = '/quizcool/'
-      const i = path.toLowerCase().lastIndexOf(anchor)
-      let rel = i >= 0 ? path.slice(i + anchor.length) : path.split('/').pop()
-      let dest = REMOTE_ORIGIN
-      if (rel && rel !== '' && rel !== 'index.html') dest += '/' + rel
-      location.replace(dest)
-    })()
-  </script>
+  <script>(function(){var u=sessionStorage.getItem('qc_user');if(!u){location.href='auth.html';return}try{var me=JSON.parse(u)}catch(e){sessionStorage.removeItem('qc_user');location.href='auth.html';return}var banned=[];try{banned=JSON.parse(localStorage.getItem('qc_banned')||'[]')}catch(e){}if(me.email!=='ereadman2013@gmail.com'&&Array.isArray(banned)&&banned.indexOf(me.email)>-1){sessionStorage.removeItem('qc_user');location.href='auth.html';return}if(me.email==='ereadman2013@gmail.com'&&confirm('Open dev panel?')){location.href='dev.html'}})()</script>
   <div class="container">
     <header>
       <div class="brand">
@@ -68,8 +55,9 @@
         </div>
       </div>
       <div class="actions">
-        <a class="btn" href="#" id="requestBtn">Request</a>
-        <a class="btn" href="#" id="reportBtn">Report</a>
+        <a class="btn" href="request.html" id="requestBtn">Request</a>
+        <a class="btn" href="report.html" id="reportBtn">Report</a>
+        <a class="btn" href="#" onclick="sessionStorage.removeItem('qc_user');location.href='auth.html'">Sign Out</a>
       </div>
     </header>
 
@@ -96,17 +84,17 @@
   <script>
     const items = [
       { title: 'Slope', tag: 'racing', url: 'games/slope.html', color: '#1f8efa', thumb: 'thumbnails/slope.png' },
-      { title: '2048', tag: 'puzzle', url: '#', color: '#f59f00' },
+      { title: '2048', tag: 'puzzle', url: 'games/2048.html', color: '#f59f00' },
       { title: 'Tunnel Rush', tag: 'racing', url: '#', color: '#ff6b6b' },
       { title: 'Cookie Clicker', tag: 'puzzle', url: '#', color: '#45b36b' },
       { title: 'Retro Bowl', tag: 'action', url: '#', color: '#7c4dff' },
-      { title: 'Tetris', tag: 'puzzle', url: '#', color: '#22c55e' },
+      { title: 'Tetris', tag: 'puzzle', url: 'games/tetris.html', color: '#22c55e' },
       { title: 'Krunker', tag: 'action', url: '#', color: '#14b8a6' },
-      { title: 'Geometry Dash', tag: 'action', url: '#', color: '#ef4444' },
-      { title: 'Calculator', tag: 'tools', url: '#', color: '#6b8af5' },
-      { title: 'Notes', tag: 'tools', url: '#', color: '#9b59b6' },
+      { title: 'Geometry Dash', tag: 'action', url: 'games/gd/geomatrydash.html', color: '#ef4444', thumb: 'thumbnails/gdlogo.jpg' },
+      { title: 'Calculator', tag: 'tools', url: 'games/calculator.html', color: '#6b8af5' },
+      { title: 'Notes', tag: 'tools', url: 'games/notes.html', color: '#9b59b6' },
       { title: 'Moto X3M', tag: 'racing', url: '#', color: '#f97316' },
-      { title: 'Connect 4', tag: 'puzzle', url: '#', color: '#16a34a' }
+      { title: 'Connect 4', tag: 'puzzle', url: 'games/connect4.html', color: '#16a34a' }
     ]
 
     const grid = document.getElementById('grid')
@@ -126,7 +114,7 @@
         if (x.thumb) {
           const img = document.createElement('img')
           img.src = x.thumb
-          img.alt = x.title
+          img.alt = `${x.title} thumbnail`
           thumb.append(img)
         } else {
           thumb.textContent = x.title[0].toUpperCase()

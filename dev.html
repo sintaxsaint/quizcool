@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quizcool — Dev Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#0b0f1a; --card:#121826; --muted:#8aa0b6; --text:#e6eef8; --accent:#4f9cf0; --accent2:#7c4dff }
+    * { box-sizing: border-box }
+    html,body { height:100% }
+    body { margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: radial-gradient(1200px 600px at 80% -10%, #1b2a40 0%, #0b0f1a 45%), var(--bg); color: var(--text) }
+    a { color: inherit; text-decoration: none }
+    .container { max-width: 1000px; margin: 0 auto; padding: 24px }
+    .topbar { position: sticky; top:0; z-index:10; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; background:#0e1524cc; backdrop-filter: blur(6px); border-bottom:1px solid #22314b }
+    .brand { display:flex; align-items:center; gap:10px }
+    .logo { width:32px; height:32px; border-radius:10px; background: linear-gradient(135deg, var(--accent), var(--accent2)); display:grid; place-items:center; font-weight:700 }
+    .title { font-weight:700 }
+    .btn { background:#1a2233; border:1px solid #28324a; color:var(--text); padding:8px 12px; border-radius:10px; font-weight:600 }
+    .btn:hover { background:#212a3f }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:18px }
+    .card { background: var(--card); border:1px solid #22314b; border-radius:14px; padding:16px }
+    .table { width:100%; border-collapse: collapse; font-size:14px }
+    .table th, .table td { border-bottom:1px solid #22314b; padding:8px 6px; text-align:left }
+    .muted { color: var(--muted) }
+    .actions { display:flex; gap:8px; margin-top:8px }
+  </style>
+  <script>
+    var ADMIN_EMAIL='ereadman2013@gmail.com'
+    function ensureDev(){var u=sessionStorage.getItem('qc_user');if(!u){location.href='auth.html';return}var me=JSON.parse(u);if(me.email!=='ereadman2013@gmail.com'){location.href='index.html'}}
+    function loadUsers(){try{var x=JSON.parse(localStorage.getItem('qc_users')||'{}');return x&&typeof x==='object'?x:{} }catch(e){return {}}}
+    function saveUsers(obj){localStorage.setItem('qc_users',JSON.stringify(obj))}
+    function loadBanned(){try{var x=JSON.parse(localStorage.getItem('qc_banned')||'[]');return Array.isArray(x)?x:[]}catch(e){return []}}
+    function saveBanned(list){localStorage.setItem('qc_banned',JSON.stringify(list))}
+    function loadPending(){try{var x=JSON.parse(localStorage.getItem('qc_pending')||'{}');return x&&typeof x==='object'?x:{} }catch(e){return {}}}
+    function savePending(obj){localStorage.setItem('qc_pending',JSON.stringify(obj))}
+    function deleteAccount(email){var users=loadUsers();if(users[email]){delete users[email];saveUsers(users)}var p=loadPending();if(p[email]){delete p[email];savePending(p)}var b=loadBanned();var i=b.indexOf(email);if(i>-1){b.splice(i,1);saveBanned(b)}var u=sessionStorage.getItem('qc_user');if(u){try{var me=JSON.parse(u);if(me.email===email){sessionStorage.removeItem('qc_user')}}catch(e){}}render()}
+    function verifyExisting(email){var users=loadUsers();if(users[email]){users[email].verified=true;saveUsers(users);render()}}
+    function verifyPending(email){var p=loadPending();var rec=p[email];if(!rec)return;var users=loadUsers();users[email]={name:rec.name,email:rec.email,nickname:rec.nickname,pwd:rec.pwd,verified:true};saveUsers(users);delete p[email];savePending(p);render()}
+    function render(){var users=loadUsers();var banned=loadBanned();var tbody=document.getElementById('users');tbody.innerHTML='';Object.keys(users).forEach(function(email){var u=users[email];var tr=document.createElement('tr');var td1=document.createElement('td');td1.textContent=u.name;var td2=document.createElement('td');td2.textContent=u.email;var td3=document.createElement('td');td3.textContent=u.nickname||'';var td4=document.createElement('td');td4.textContent=u.verified?'yes':'no';var td5=document.createElement('td');var wrap=document.createElement('div');wrap.style.display='flex';wrap.style.gap='8px';var isB=banned.indexOf(email)>-1;var banBtn=document.createElement('button');banBtn.className='btn';banBtn.textContent=isB?'Unban':'Ban';banBtn.disabled=email===ADMIN_EMAIL;banBtn.onclick=function(){if(email===ADMIN_EMAIL)return;var b=loadBanned();var i=b.indexOf(email);if(i>-1){b.splice(i,1)}else{b.push(email)}saveBanned(b);render()};var verBtn=document.createElement('button');verBtn.className='btn';verBtn.textContent='Verify';verBtn.onclick=function(){verifyExisting(email)};var delBtn=document.createElement('button');delBtn.className='btn';delBtn.textContent='Delete';delBtn.disabled=email===ADMIN_EMAIL;delBtn.onclick=function(){if(email===ADMIN_EMAIL)return;if(confirm('Delete account '+email+'?')){deleteAccount(email)}};wrap.append(banBtn,verBtn,delBtn);td5.appendChild(wrap);tr.append(td1,td2,td3,td4,td5);tbody.appendChild(tr)});
+      var bl=document.getElementById('banned');bl.innerHTML='';banned.forEach(function(e){var li=document.createElement('li');var span=document.createElement('span');span.textContent=e;var un=document.createElement('button');un.className='btn';un.style.marginLeft='8px';un.textContent='Unban';un.disabled=e===ADMIN_EMAIL;un.onclick=function(){var b=loadBanned();var i=b.indexOf(e);if(i>-1){b.splice(i,1);saveBanned(b);render()}};li.appendChild(span);li.appendChild(un);bl.appendChild(li)});
+      var p=loadPending();var ptbody=document.getElementById('pending');ptbody.innerHTML='';Object.keys(p).forEach(function(email){var rec=p[email];var tr=document.createElement('tr');var td1=document.createElement('td');td1.textContent=rec.name;var td2=document.createElement('td');td2.textContent=rec.email;var td3=document.createElement('td');td3.textContent=rec.nickname||'';var td4=document.createElement('td');var dt=new Date(rec.ts||Date.now());td4.textContent=dt.toLocaleString();var td5=document.createElement('td');var wrap=document.createElement('div');wrap.style.display='flex';wrap.style.gap='8px';var v=document.createElement('button');v.className='btn';v.textContent='Verify';v.onclick=function(){verifyPending(email)};var d=document.createElement('button');d.className='btn';d.textContent='Reject';d.onclick=function(){if(confirm('Reject '+email+'?')){var p=loadPending();delete p[email];savePending(p);render()}};wrap.append(v,d);td5.appendChild(wrap);tr.append(td1,td2,td3,td4,td5);ptbody.appendChild(tr)})}
+    function manualBan(e){e.preventDefault();var email=document.getElementById('ban_email').value.trim().toLowerCase();if(!email)return;var b=loadBanned();if(b.indexOf(email)===-1){b.push(email);saveBanned(b);render();document.getElementById('ban_email').value=''} }
+  </script>
+</head>
+<body onload="ensureDev();render()">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">QC</div>
+      <div>
+        <div class="title">Dev Panel</div>
+        <small class="muted">Admin tools</small>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <a class="btn" href="index.html">Back</a>
+      <a class="btn" href="#" onclick="sessionStorage.removeItem('qc_user');location.href='auth.html'">Sign Out</a>
+    </div>
+  </div>
+  <div class="container">
+    <div class="grid">
+      <div class="card">
+        <h3 style="margin:0 0 8px">Users</h3>
+        <table class="table">
+          <thead>
+            <tr><th>Name</th><th>Email</th><th>Nickname</th><th>Verified</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="users"></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 8px">Banned</h3>
+        <ul id="banned" class="muted"></ul>
+        <form onsubmit="manualBan(event)" class="actions">
+          <input id="ban_email" type="email" placeholder="email@example.com" style="flex:1;background:#0f1624;border:1px solid #22314b;color:var(--text);border-radius:10px;padding:10px 12px">
+          <button class="btn" type="submit">Ban</button>
+        </form>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 8px">Pending Signups</h3>
+        <table class="table">
+          <thead>
+            <tr><th>Name</th><th>Email</th><th>Nickname</th><th>Submitted</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="pending"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
