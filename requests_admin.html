@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quizcool — Requests Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#0b0f1a; --card:#121826; --muted:#8aa0b6; --text:#e6eef8; --accent:#4f9cf0; --accent2:#7c4dff }
+    * { box-sizing: border-box }
+    html,body { height:100% }
+    body { margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: radial-gradient(1200px 600px at 80% -10%, #1b2a40 0%, #0b0f1a 45%), var(--bg); color: var(--text) }
+    a { color: inherit; text-decoration: none }
+    .container { max-width: 1000px; margin: 0 auto; padding: 24px }
+    .topbar { position: sticky; top:0; z-index:10; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; background:#0e1524cc; backdrop-filter: blur(6px); border-bottom:1px solid #22314b }
+    .brand { display:flex; align-items:center; gap:10px }
+    .logo { width:32px; height:32px; border-radius:10px; background: linear-gradient(135deg, var(--accent), var(--accent2)); display:grid; place-items:center; font-weight:700 }
+    .title { font-weight:700 }
+    .btn { background:#1a2233; border:1px solid #28324a; color:var(--text); padding:8px 12px; border-radius:10px; font-weight:600 }
+    .btn:hover { background:#212a3f }
+    .card { background: var(--card); border:1px solid #22314b; border-radius:14px; padding:16px; margin-top:18px }
+    .table { width:100%; border-collapse: collapse; font-size:14px }
+    .table th, .table td { border-bottom:1px solid #22314b; padding:8px 6px; text-align:left }
+    .muted { color: var(--muted) }
+  </style>
+  <script>
+    function ensureDev(){var u=sessionStorage.getItem('qc_user');if(!u){location.href='auth.html';return}var me=JSON.parse(u);if(me.email!=='ereadman2013@gmail.com'){location.href='index.html'}}
+    function loadRequests(){try{var x=JSON.parse(localStorage.getItem('qc_requests')||'[]');return Array.isArray(x)?x:[]}catch(e){return []}}
+    function saveRequests(list){localStorage.setItem('qc_requests',JSON.stringify(list))}
+    function loadReqMap(){try{var x=JSON.parse(localStorage.getItem('qc_requesters_by_game')||'{}');return x&&typeof x==='object'?x:{} }catch(e){return {}}}
+    function saveReqMap(obj){localStorage.setItem('qc_requesters_by_game',JSON.stringify(obj))}
+    function render(){var tbody=document.getElementById('rows');tbody.innerHTML='';var list=loadRequests();if(list.length===0){var tr=document.createElement('tr');var td=document.createElement('td');td.colSpan=7;td.className='muted';td.textContent='No requests yet';tr.append(td);tbody.append(tr);return}list.forEach(function(r,i){var tr=document.createElement('tr');var td1=document.createElement('td');td1.textContent=new Date(r.ts).toLocaleString();var td2=document.createElement('td');td2.textContent=r.name||'';var td3=document.createElement('td');td3.textContent=r.details||'';var td4=document.createElement('td');td4.textContent=r.contact||'';var td5=document.createElement('td');td5.textContent=r.fromName||'';var td6=document.createElement('td');td6.textContent=r.from||'';var td7=document.createElement('td');var s=document.createElement('span');s.className='muted';s.textContent=r.status||'new';var a=document.createElement('div');a.style.display='flex';a.style.gap='8px';var done=document.createElement('button');done.className='btn';done.textContent='Mark Done';done.onclick=function(){var cur=loadRequests();var map=loadReqMap();var key=(cur[i].name||'').trim().toLowerCase();if(key){var arr=Array.isArray(map[key])?map[key]:[];var em=(cur[i].from||'').trim().toLowerCase();if(em&&arr.indexOf(em)===-1){arr.push(em)}map[key]=arr;saveReqMap(map)}cur[i].status='done';saveRequests(cur);render()};var del=document.createElement('button');del.className='btn';del.textContent='Delete';del.onclick=function(){var cur=loadRequests();cur.splice(i,1);saveRequests(cur);render()};a.append(done,del);td7.append(s,a);tr.append(td1,td2,td3,td4,td5,td6,td7);tbody.append(tr)})}
+  </script>
+</head>
+<body onload="ensureDev();render()">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">QC</div>
+      <div>
+        <div class="title">Requests Inbox</div>
+        <small class="muted">Admin view</small>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <a class="btn" href="dev.html">Back</a>
+      <a class="btn" href="#" onclick="sessionStorage.removeItem('qc_user');location.href='auth.html'">Sign Out</a>
+    </div>
+  </div>
+  <div class="container">
+    <div class="card">
+      <table class="table">
+        <thead>
+          <tr><th>Submitted</th><th>Name</th><th>Details</th><th>Contact</th><th>Account</th><th>From</th><th>Status / Actions</th></tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

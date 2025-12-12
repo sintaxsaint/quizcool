@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quizcool — Tetris</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#0b0f1a; --card:#121826; --muted:#8aa0b6; --text:#e6eef8; --accent:#4f9cf0; --accent2:#7c4dff }
+    * { box-sizing: border-box }
+    html,body { height:100% }
+    body { margin:0; background: radial-gradient(1200px 600px at 80% -10%, #1b2a40 0%, #0b0f1a 45%), var(--bg); color: var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif }
+    .topbar { position: sticky; top:0; z-index:10; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; background:#0e1524cc; backdrop-filter: blur(6px); border-bottom:1px solid #22314b }
+    .brand { display:flex; align-items:center; gap:10px }
+    .logo { width:32px; height:32px; border-radius:10px; background: linear-gradient(135deg, var(--accent), var(--accent2)); display:grid; place-items:center; font-weight:700 }
+    .title { font-weight:700 }
+    .btn { background:#1a2233; border:1px solid #28324a; color:var(--text); padding:8px 12px; border-radius:10px; font-weight:600; text-decoration:none }
+    .btn:hover { background:#212a3f }
+    .wrap { height: calc(100vh - 58px); display:flex; align-items:center; justify-content:center; padding:16px }
+    .panel { display:flex; gap:16px; align-items:flex-start }
+    canvas { background:#0f1624; border:1px solid #22314b; border-radius:12px }
+    .side { display:flex; flex-direction:column; gap:10px }
+    .score { color: var(--muted) }
+  </style>
+</head>
+<body>
+  <script>(function(){var u=sessionStorage.getItem('qc_user');if(!u){location.href='../auth.html';return}try{var me=JSON.parse(u)}catch(e){sessionStorage.removeItem('qc_user');location.href='../auth.html';return}var banned=[];try{banned=JSON.parse(localStorage.getItem('qc_banned')||'[]')}catch(e){}if(me.email!=='ereadman2013@gmail.com'&&Array.isArray(banned)&&banned.indexOf(me.email)>-1){sessionStorage.removeItem('qc_user');location.href='../auth.html';return}if(me.email==='ereadman2013@gmail.com'&&confirm('Open dev panel?')){var Q=[{q:'This project started on a?',a:['laptop']},{q:'Site name?',a:['quizcool']},{q:'Hosting platform used?',a:['github pages','github','pages']},{q:'Primary dev email?',a:['ereadman2013@gmail.com']},{q:'Main homepage file name?',a:['index.html']},{q:'Auth page file name?',a:['auth.html']},{q:'Games folder name?',a:['games']},{q:'Brand acronym shown in the logo?',a:['qc']},{q:'Primary languages used?',a:['html','javascript','js']}];var q=Q[Math.floor(Math.random()*Q.length)];var a=(prompt(q.q)||'').trim().toLowerCase();var ok=false;for(var i=0;i<q.a.length;i++){if(a===q.a[i].toLowerCase()){ok=true;break}}if(!ok){alert('Incorrect answer');return}location.href='../dev.html'}})()</script>
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">QC</div>
+      <div>
+        <div class="title">Tetris</div>
+        <small style="color:var(--muted)">Quizcool</small>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <a class="btn" href="../index.html">Back</a>
+      <a class="btn" href="#" onclick="sessionStorage.removeItem('qc_user');location.href='../auth.html'">Sign Out</a>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="panel">
+      <canvas id="game"></canvas>
+      <div class="side">
+        <div class="score">Score: <span id="score">0</span></div>
+        <a class="btn" href="#" id="reset">Reset</a>
+      </div>
+    </div>
+  </div>
+  <script>
+    var W=10,H=20,S=20
+    var canvas=document.getElementById('game')
+    var ctx=canvas.getContext('2d')
+    var arena=new Array(H).fill(0).map(function(){return new Array(W).fill(0)})
+    var score=0
+    var pieces={
+      'T':[[0,1,0],[1,1,1],[0,0,0]],
+      'O':[[1,1],[1,1]],
+      'L':[[0,0,1],[1,1,1],[0,0,0]],
+      'J':[[1,0,0],[1,1,1],[0,0,0]],
+      'I':[[0,0,0,0],[1,1,1,1],[0,0,0,0]],
+      'S':[[0,1,1],[1,1,0],[0,0,0]],
+      'Z':[[1,1,0],[0,1,1],[0,0,0]]
+    }
+    var colors={1:'#4f9cf0',2:'#7c4dff',3:'#22c55e',4:'#ef4444',5:'#f59f00',6:'#14b8a6',7:'#f97316'}
+    var player={pos:{x:0,y:0},matrix:null,color:'#4f9cf0'}
+    function createPiece(){var keys=Object.keys(pieces);var k=keys[Math.floor(Math.random()*keys.length)];var m=pieces[k].map(function(r){return r.slice()});player.matrix=m;player.color=colors[(keys.indexOf(k)+1)]||'#4f9cf0';player.pos.y=0;player.pos.x=(W>>1)-((m[0].length>>1))}
+    function collide(a,p){for(var y=0;y<p.matrix.length;y++){for(var x=0;x<p.matrix[y].length;x++){if(p.matrix[y][x]&&((a[y+p.pos.y]&&a[y+p.pos.y][x+p.pos.x])!==0))return true}}return false}
+    function merge(a,p){for(var y=0;y<p.matrix.length;y++){for(var x=0;x<p.matrix[y].length;x++){if(p.matrix[y][x])a[y+p.pos.y][x+p.pos.x]=p.color}}}
+    function rotate(m,dir){for(var y=0;y<m.length;y++){for(var x=0;x<y;x++){var t=m[y][x];m[y][x]=m[x][y];m[x][y]=t}}if(dir>0){m.forEach(function(r){r.reverse()})}else{m.reverse()}}
+    var clearing=null, paused=false
+    function sweep(){var rows=[];outer: for(var y=H-1;y>=0;y--){for(var x=0;x<W;x++){if(arena[y][x]===0)continue outer}rows.push(y)}if(rows.length){paused=true;clearing={rows:rows};setTimeout(function(){for(var i=0;i<rows.length;i++){var y=rows[i];var row=arena.splice(y,1)[0].fill(0);arena.unshift(row)}score+=rows.length*10;document.getElementById('score').textContent=score;clearing=null;paused=false},220)}}
+    var dropCounter=0, dropInterval=800, lastTime=0
+    function update(t){var dt=t-lastTime;lastTime=t;if(!paused){dropCounter+=dt;if(dropCounter>dropInterval){player.pos.y++;if(collide(arena,player)){player.pos.y--;merge(arena,player);createPiece();sweep();if(collide(arena,player)){arena=new Array(H).fill(0).map(function(){return new Array(W).fill(0)});score=0;document.getElementById('score').textContent=score}}dropCounter=0}}draw();requestAnimationFrame(update)}
+    function draw(){ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);drawMatrix(arena,{x:0,y:0});drawPlayer();if(clearing){ctx.save();ctx.globalAlpha=0.35;ctx.fillStyle='#fff';for(var i=0;i<clearing.rows.length;i++){var y=clearing.rows[i];ctx.fillRect(0,y*S,W*S,S)}ctx.restore()}}
+    function drawMatrix(m,offset){for(var y=0;y<m.length;y++){for(var x=0;x<m[y].length;x++){var v=m[y][x];if(v){ctx.fillStyle=v;ctx.fillRect((x+offset.x)*S,(y+offset.y)*S,S,S)}}}}
+    function drawPlayer(){for(var y=0;y<player.matrix.length;y++){for(var x=0;x<player.matrix[y].length;x++){if(player.matrix[y][x]){ctx.fillStyle=player.color;ctx.fillRect((x+player.pos.x)*S,(y+player.pos.y)*S,S,S)}}}}
+    function resize(){var panel=document.querySelector('.panel');var side=document.querySelector('.side');var availW=panel.clientWidth-(side.clientWidth+24);var availH=window.innerHeight-58-64;var s=Math.floor(Math.min(availW/W,availH/H));S=Math.max(12,s);canvas.width=W*S;canvas.height=H*S}
+    document.addEventListener('keydown',function(e){var k=e.key.toLowerCase();if(k==='arrowleft'||k==='a'){player.pos.x--;if(collide(arena,player))player.pos.x++}else if(k==='arrowright'||k==='d'){player.pos.x++;if(collide(arena,player))player.pos.x--}else if(k==='arrowdown'||k==='s'){player.pos.y++;if(collide(arena,player)){player.pos.y--;merge(arena,player);createPiece();sweep()}}else if(k==='q'){rotate(player.matrix,-1);if(collide(arena,player))rotate(player.matrix,1)}else if(k==='e'){rotate(player.matrix,1);if(collide(arena,player))rotate(player.matrix,-1)}})
+    document.getElementById('reset').addEventListener('click',function(e){e.preventDefault();arena=new Array(H).fill(0).map(function(){return new Array(W).fill(0)});score=0;document.getElementById('score').textContent=score;createPiece()})
+    window.addEventListener('resize',resize)
+    resize();createPiece();update(0)
+  </script>
+</body>
+</html>

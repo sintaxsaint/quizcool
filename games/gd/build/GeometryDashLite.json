@@ -1,0 +1,9 @@
+{
+  "companyName": "Quizcool",
+  "productName": "Geometry Dash Lite",
+  "productVersion": "1.0",
+  "backgroundColor": "#000000",
+  "dataUrl": "https://rawcdn.githack.com/genizy/google-class/main/gdlite/Build/GeometryDashLite.data.unityweb",
+  "wasmFrameworkUrl": "https://rawcdn.githack.com/genizy/google-class/main/gdlite/Build/GeometryDashLite.framework.js.unityweb",
+  "wasmCodeUrl": "https://rawcdn.githack.com/genizy/google-class/main/gdlite/Build/GeometryDashLite.wasm.unityweb"
+}
