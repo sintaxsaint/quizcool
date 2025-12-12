@@ -204,11 +204,18 @@
         <script src="build/UnityLoader.js"></script>
         <script>
             (function(){
-                var local = "build/GeometryDashLite.json";
-                var remote = "https://rawcdn.githack.com/genizy/google-class/main/gdlite/Build/GeometryDashLite.json";
-                fetch(local, { method: 'HEAD' })
-                    .then(function(){ UnityLoader.instantiate("gameContainer", local, { onProgress: UnityProgress }); })
-                    .catch(function(){ UnityLoader.instantiate("gameContainer", remote, { onProgress: UnityProgress }); });
+                var manifest={
+                  companyName:"Quizcool",
+                  productName:"Geometry Dash Lite",
+                  productVersion:"1.0",
+                  unityVersion:"2019.4.0f1",
+                  backgroundColor:"#000000",
+                  dataUrl:"build/GeometryDashLite.data.unityweb",
+                  wasmFrameworkUrl:"build/GeometryDashLite.framework.js.unityweb",
+                  wasmCodeUrl:"build/GeometryDashLite.wasm.unityweb"
+                };
+                var url=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/json"}));
+                UnityLoader.instantiate("gameContainer", url, { onProgress: UnityProgress });
             })();
 
             function UnityProgress(gameInstance, progress) {
